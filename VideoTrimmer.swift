@@ -10,17 +10,17 @@ import UIKit
 import AVFoundation
 
 // Controls that allows trimming a range and scrubbing a progress indicator
-@IBDesignable class VideoTrimmer: UIControl {
+@IBDesignable public class VideoTrimmer: UIControl {
 
 	// events for changing selectedRange ("trimming")
-	static let didBeginTrimming = UIControl.Event(rawValue:     0b00000001 << 24)
-	static let selectedRangeChanged = UIControl.Event(rawValue: 0b00000010 << 24)
-	static let didEndTrimming = UIControl.Event(rawValue:       0b00000100 << 24)
+    public static let didBeginTrimming = UIControl.Event(rawValue:     0b00000001 << 24)
+    public static let selectedRangeChanged = UIControl.Event(rawValue: 0b00000010 << 24)
+    public static let didEndTrimming = UIControl.Event(rawValue:       0b00000100 << 24)
 
 	// events for scrubbing the progress indicator ("scrubbing")
-	static let didBeginScrubbing = UIControl.Event(rawValue:    0b00001000 << 24)
-	static let progressChanged = UIControl.Event(rawValue:      0b00010000 << 24)
-	static let didEndScrubbing = UIControl.Event(rawValue:      0b00100000 << 24)
+    public static let didBeginScrubbing = UIControl.Event(rawValue:    0b00001000 << 24)
+    public static let progressChanged = UIControl.Event(rawValue:      0b00010000 << 24)
+    public static let didEndScrubbing = UIControl.Event(rawValue:      0b00100000 << 24)
 
 	private struct Thumbnail {
 		let uuid = UUID()
@@ -28,7 +28,7 @@ import AVFoundation
 		let time: CMTime
 	}
 
-	let thumbView = VideoTrimmerThumb()
+    let thumbView = VideoTrimmerThumb()
 	private let wrapperView = UIView()
 	private let shadowView = UIView()
 	private let thumbnailClipView = UIView()
@@ -44,7 +44,7 @@ import AVFoundation
 	// defines how much the control is insetted from its sides:
 	// this is set to 16, so that you can have the control fullscreen (and have it
 	// edge-to-edge when zooming in)
-	@IBInspectable var horizontalInset: CGFloat = 16 {
+	@IBInspectable public var horizontalInset: CGFloat = 16 {
 		didSet {
 			guard horizontalInset != oldValue else {return}
 			setNeedsLayout()
@@ -52,7 +52,7 @@ import AVFoundation
 	}
 
 	// the asset to use
-	var asset: AVAsset? {
+    public var asset: AVAsset? {
 		didSet {
 			if let asset = asset {
 				let duration = asset.duration
@@ -65,7 +65,7 @@ import AVFoundation
 	}
 
 	// the video composition to use
-	var videoComposition: AVVideoComposition? {
+    public var videoComposition: AVVideoComposition? {
 		didSet {
 			lastKnownViewSizeForThumbnailGeneration = .zero
 			setNeedsLayout()
@@ -73,11 +73,11 @@ import AVFoundation
 	}
 
 	// a clip cannot be trimmed shorter than this duration
-	var minimumDuration: CMTime = .zero
+    public var minimumDuration: CMTime = .zero
 
 	// the available range of the asset.
 	// Will be set to the full duration of the asset when assigning a new asset
-	var range: CMTimeRange = .invalid {
+    public var range: CMTimeRange = .invalid {
 		didSet {
 			setNeedsLayout()
 		}
@@ -85,25 +85,25 @@ import AVFoundation
 
 	// the range that is selected, will be set to the full duration
 	// when changing asset.
-	var selectedRange: CMTimeRange = .invalid {
+    public var selectedRange: CMTimeRange = .invalid {
 		didSet {
 			setNeedsLayout()
 		}
 	}
 
 	// defines what to do with the progress indicator
-	enum ProgressIndicatorMode {
+    public enum ProgressIndicatorMode {
 		case hiddenOnlyWhenTrimming // the progress indicator gets hidden when the user starts trimming
 		case alwaysShown // the progress indicator is always shown, even when the user is trimming
 		case alwaysHidden // the progress indicator is never shown
 	}
-	var progressIndicatorMode = ProgressIndicatorMode.hiddenOnlyWhenTrimming {
+    public var progressIndicatorMode = ProgressIndicatorMode.hiddenOnlyWhenTrimming {
 		didSet {
 			updateProgressIndicator()
 		}
 	}
 
-	func setProgressIndicatorMode(_ mode: ProgressIndicatorMode, animated: Bool) {
+    public func setProgressIndicatorMode(_ mode: ProgressIndicatorMode, animated: Bool) {
 		guard progressIndicatorMode != mode else {return}
 
 		if animated == true {
@@ -117,13 +117,13 @@ import AVFoundation
 	}
 
 	// defines where the progress indicator is shown.
-	var progress: CMTime = .zero {
+    public var progress: CMTime = .zero {
 		didSet {
 			setNeedsLayout()
 		}
 	}
 
-	func setProgress(_ progress: CMTime, animated: Bool) {
+    public func setProgress(_ progress: CMTime, animated: Bool) {
 		guard CMTimeCompare(self.progress, progress) != 0 else {return}
 
 		self.progress = progress
@@ -136,13 +136,13 @@ import AVFoundation
 
 
 	// defines if the user is trimming or not, and if so, which edge
-	enum TrimmingState {
+    public enum TrimmingState {
 		case none		// user isn't trimming
 		case leading	// user is trimming the leading part of the asset
 		case trailing	// user is trimming the trailing part of the asset
 	}
 
-	private(set) var trimmingState = TrimmingState.none {
+	private(set) public var trimmingState = TrimmingState.none {
 		didSet {
 			UIViewPropertyAnimator.runningPropertyAnimator(withDuration: 0.25, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction], animations: {
 				self.shadowView.layer.shadowOpacity = (self.trimmingState != .none ? 0.5 : 0.25)
@@ -152,22 +152,22 @@ import AVFoundation
 	}
 
 	// yes if the user is zoomed in
-	private(set) var isZoomedIn = false
-	private(set) var zoomedInRange: CMTimeRange = .zero
+	private(set) public var isZoomedIn = false
+	private(set) public var zoomedInRange: CMTimeRange = .zero
 
 
 	// yes if the user is scrubbing the progress indicator
-	private(set) var isScrubbing = false
+	private(set) public var isScrubbing = false
 
 	// background color for the track
-	var trackBackgroundColor = UIColor.black {
+    public var trackBackgroundColor = UIColor.black {
 		didSet {
 			thumbnailWrapperView.backgroundColor = trackBackgroundColor
 		}
 	}
 
 	// background color for the place where the thumbs rest on when the selectedRange == range
-	var thumbRestColor = UIColor.black {
+    public var thumbRestColor = UIColor.black {
 		didSet {
 			leadingThumbRest.backgroundColor = thumbRestColor
 			trailingThumbRest.backgroundColor = thumbRestColor
@@ -175,12 +175,12 @@ import AVFoundation
 	}
 
 	// the range that's currently visible: could be less than "range" when zoomed in
-	var visibleRange: CMTimeRange  {
+    public var visibleRange: CMTimeRange  {
 		return isZoomedIn == true ? zoomedInRange : range
 	}
 
 	// the time that's currently selected by the user when trimming
-	var selectedTime: CMTime {
+    public var selectedTime: CMTime {
 		switch trimmingState {
 			case .none: return .zero
 			case .leading: return selectedRange.start
@@ -190,10 +190,10 @@ import AVFoundation
 
 	// gesture recognizers used. Can be used, for instance, to
 	// require a tableview panGestureRecognizer to fail
-	private (set) var leadingGestureRecognizer: UILongPressGestureRecognizer!
-	private (set) var trailingGestureRecognizer: UILongPressGestureRecognizer!
-	private (set) var progressGestureRecognizer: UILongPressGestureRecognizer!
-	private (set) var thumbnailInteractionGestureRecognizer: UILongPressGestureRecognizer!
+	private (set) public var leadingGestureRecognizer: UILongPressGestureRecognizer!
+	private (set) public var trailingGestureRecognizer: UILongPressGestureRecognizer!
+	private (set) public var progressGestureRecognizer: UILongPressGestureRecognizer!
+	private (set) public var thumbnailInteractionGestureRecognizer: UILongPressGestureRecognizer!
 
 	// private stuff
 	private var grabberOffset = CGFloat(0)
@@ -670,11 +670,11 @@ import AVFoundation
 
 	// MARK: - UIView
 
-	override var intrinsicContentSize: CGSize {
+	override public var intrinsicContentSize: CGSize {
 		return CGSize(width: UIView.noIntrinsicMetric, height: 50)
 	}
 
-	override func layoutSubviews() {
+	override public func layoutSubviews() {
 		super.layoutSubviews()
 
 		let size = bounds.size
